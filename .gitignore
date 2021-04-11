@@ -15,3 +15,5 @@ venv/
 
 # VS Code Settings
 .vscode
+
+.pdf
