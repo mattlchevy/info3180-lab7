@@ -1,6 +1,100 @@
 /* Add your Application JavaScript */
 // Instantiate our main Vue Instance
+const Home = {
+    name: 'Home',
+    template: `
+    <div class="jumbotron">
+        <h1>Lab 7</h1>
+        <p class="lead">In this lab we will demonstrate VueJS working with Forms and Form Validation from Flask-WTF.</p>
+    </div>
+    `,
+    data() {
+        return {}
+    }
+};
+
+const uploadform= {
+    name: "upload-form",
+    template:
+    /*html*/
+   ` <div>
+        <h2> Upload Form </h2>
+        <form v-on:submit.prevent="uploadPhoto"  id="uploadForm" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+            <br>
+                <label> Description </label>
+            <br>
+                <textarea name="description"></textarea>
+            <br>
+                <label> Photo </label>
+            <br>
+            <input type="file" class="form-control" name="photo"  @change="onFileChange" accept="image/*" />
+
+            </div>
+
+            <button class="btn btn-primary mb-2"> Upload </button>
+        </form> 
+    </div>`,
+    data() {
+        return {
+            alertText: '',
+            errors: []
+        }
+    },
+    method:{
+        uploadPhoto(){
+            let self = this;
+            let uploadForm = document.getElementById('uploadForm');
+            let displayAlert = document.getElementById('showAlert');
+            let form_data = new FormData(uploadForm);
+
+            fetch("/api/upload", {
+                method: 'POST',
+                body: form_data,
+                headers: {
+                    'X-CSRFToken': token
+                     },
+                     credentials: 'same-origin'
+            }).then(function(response) {
+                return response.json();
+            }).then(function(jsonResponse) {
+                // display a success message or error/s, depending
+                displayAlert.style.display = "block";
+                console.log(jsonResponse.status);
+                if (jsonResponse.status == 200) {
+                    self.alertText = jsonResponse.message;
+                    // alert(self.alertText);
+                    self.errors = []
+                    displayAlert.classList.add("alert-success");
+                    displayAlert.classList.remove("alert-danger");
+                } else if (jsonResponse.status == 500) {
+                    self.errors = jsonResponse.errors;
+                    self.alertText = "";
+                    displayAlert.classList.add('alert-danger');
+                    displayAlert.classList.remove('alert-success');
+                }
+            }).catch(function(error) {
+                console.log(error);
+                self.errors = error;
+            });
+
+
+        }
+
+    },
+    mounted() {
+        document.getElementById("showAlert").style.display = "none";
+    }
+
+};
+
+
+
 const app = Vue.createApp({
+    components: {
+        'Home': Home,
+        'upload-form': uploadform
+    },
     data() {
         return {
 
@@ -23,7 +117,7 @@ app.component('app-header', {
             <router-link class="nav-link" to="/">Home <span class="sr-only">(current)</span></router-link>
           </li>
           <li class="nav-item active">
-            <router-link class="nav-link" to="/api/upload">Upload <span class="sr-only">(current)</span></router-link>
+            <router-link class="nav-link" to="/upload">Upload <span class="sr-only">(current)</span></router-link>
           </li>
         </ul>
       </div>
@@ -31,55 +125,7 @@ app.component('app-header', {
     `
 });
 
-app.component('upload-form', {
-    template:
-    /*html*/
-   ` <div>
-        <h2> Upload Form <h2>
-        <form v-on:submit.prevent="uploadPhoto"  id="uploadForm" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
 
-                <label> Description </label>
-
-                <textarea name="description"></textarea>
-
-                <label> Photo </label>
-                <input type="file" name="photo">
-
-            </div>
-
-            <button @click="uploadPhoto" class="btn btn-primary mb-2"> Upload </button>
-        </form> 
-    </div>`,
-    method:{
-        uploadPhoto(){
-            
-            let uploadForm = document.getElementById('uploadForm');
-
-            let form_data = new FormData(uploadForm);
-
-            fetch("/api/upload", {
-                method: 'POST',
-                body: form_data,
-                headers: {
-                    'X-CSRFToken': token
-                     },
-                     credentials: 'same-origin'
-            })
-            .then(function(response){
-                // display a success message
-                return response.json();
-            })
-            .then(function(jsonResponse){
-                console.log(jsonResponse);
-            })
-            .catch(function(error){
-                console.log(error);
-            })
-
-        }
-    }
-});
 
 app.component('app-footer', {
     name: 'AppFooter',
@@ -97,18 +143,9 @@ app.component('app-footer', {
     }
 });
 
-const Home = {
-    name: 'Home',
-    template: `
-    <div class="jumbotron">
-        <h1>Lab 7</h1>
-        <p class="lead">In this lab we will demonstrate VueJS working with Forms and Form Validation from Flask-WTF.</p>
-    </div>
-    `,
-    data() {
-        return {}
-    }
-};
+
+
+
 
 const NotFound = {
     name: 'NotFound',
@@ -127,7 +164,7 @@ const routes = [
     { path: "/", component: Home },
     // Put other routes here
 
-    { path: "/api/upload", component: upload-form},
+    { path: "/upload", component: uploadform},
 
     // This is a catch all route in case none of the above matches
     { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFound }

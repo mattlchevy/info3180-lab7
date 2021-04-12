@@ -17,8 +17,7 @@ from werkzeug.utils import secure_filename
 def upload():
 
     form = UploadForm()
-    
-    
+     
 
     if request.method == 'POST' and form.validate_on_submit():
         
@@ -35,7 +34,7 @@ def upload():
         return jsonify(vue_data)
 
 
-    return jsonify(errors=form_errors)
+    return jsonify(errors=form_errors(form))
 
 # Please create all new routes and view functions above this route.
 # This route is now our catch all route for our VueJS single page
